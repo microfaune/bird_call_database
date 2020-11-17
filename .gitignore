@@ -298,3 +298,5 @@ __pycache__/
 /tools/Certificates
 /dist/langpacks
 .DS_Store
+.idea/
+__pycache/
