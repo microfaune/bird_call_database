@@ -13,18 +13,24 @@ class DataPreparation:
         self.local_score = None
 
     def predict_wav(self, wav_audio_path):
+        """
+        Run the RNNDetector prediction on a wav file, and then reshape the array with the expected
+        dimension for the next model.
+        :param wav_audio_path: String for the path of the wav file
+
+        :return: np.array of shape (self.expected_dim,)
+        """
         self.global_score, self.local_score = self.detector.predict_on_wav(wav_audio_path)
         if self.global_score < 0.5:  # TO BE CHECKED
             return np.array([0]*self.expected_dim)
 
-        redimensioned_local_score = self.reshape_prediction()
-        return redimensioned_local_score
+        return self.reshape_prediction()
 
     def reshape_prediction(self):
         """
         If dimension is too small for the model, we will add some zeros to fill the blanks
         If dimension is too high, we will keep the most interesting portion.
-        :return:
+        :return: np.array of shape (self.expected_dim,)
         """
         if self.local_score.shape[0] < self.expected_dim:
             return self._reshape_small_array()
@@ -44,6 +50,12 @@ class DataPreparation:
         return np.pad(self.local_score, (left_padding, right_padding), "constant", constant_values=(0, 0))
 
     def _reshape_big_array(self):
+        """
+        Select the part self.local_score where the scores are the highest. To do that, we select the portion of the
+        array where the coefficients mean is the highest.
+
+        :return: np.array of shape (self.expected_dim,)
+        """
         range_to_check = self.local_score.shape[0] - self.expected_dim
         means = list()
         for i in range(range_to_check):
