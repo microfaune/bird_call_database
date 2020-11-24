@@ -1,3 +1,5 @@
+import numpy as np
+
 from microfaune.detection import RNNDetector
 detector = RNNDetector()
 
@@ -12,8 +14,8 @@ class DataPreparation:
 
     def predict_wav(self, wav_audio_path):
         self.global_score, self.local_score = self.detector.predict_on_wav(wav_audio_path)
-        redimension_local_score = self.reshape_prediction(self.local_score)
-        return redimension_local_score
+        redimensioned_local_score = self.reshape_prediction()
+        return redimensioned_local_score
 
     def reshape_prediction(self):
         """
@@ -27,8 +29,16 @@ class DataPreparation:
             return self._reshape_big_array()
         return self.local_score
 
-    def _reshape_small_array(self, local_score):
-        pass
+    def _reshape_small_array(self):
+        """
+        Simply fill the local_score with left zeros and right zeros
+
+        :return: np.array of shape (self.expected_dim,)
+
+        """
+        right_padding = int((self.expected_dim - self.local_score.shape[0]) / 2)
+        left_padding = self.expected_dim - self.local_score.shape[0] - right_padding
+        return np.pad(self.local_score, (left_padding, right_padding), "constant", constant_values=(0, 0))
 
     def _reshape_big_array(self, local_score):
         pass
