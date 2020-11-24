@@ -14,6 +14,9 @@ class DataPreparation:
 
     def predict_wav(self, wav_audio_path):
         self.global_score, self.local_score = self.detector.predict_on_wav(wav_audio_path)
+        if self.global_score < 0.5:  # TO BE CHECKED
+            return np.array([0]*self.expected_dim)
+
         redimensioned_local_score = self.reshape_prediction()
         return redimensioned_local_score
 
@@ -40,5 +43,14 @@ class DataPreparation:
         left_padding = self.expected_dim - self.local_score.shape[0] - right_padding
         return np.pad(self.local_score, (left_padding, right_padding), "constant", constant_values=(0, 0))
 
-    def _reshape_big_array(self, local_score):
-        pass
+    def _reshape_big_array(self):
+        range_to_check = self.local_score.shape[0] - self.expected_dim
+        means = list()
+        for i in range(range_to_check):
+            means.append(np.mean(self.local_score[i:i+self.expected_dim]))
+        max_index = means.index(max(means))
+        return self.local_score[max_index:max_index+self.expected_dim]
+
+
+
+
